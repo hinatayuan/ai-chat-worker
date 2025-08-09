@@ -1,20 +1,20 @@
-// src/index.ts - Cloudflare Worker 主文件
+// src/index.ts - Cloudflare Worker 主文件 (DeepSeek API 版本)
 import { createSchema, createYoga } from 'graphql-yoga'
 
 // 环境变量类型定义
 interface Env {
-  OPENAI_API_KEY: string;
+  DEEPSEEK_API_KEY: string;
   CORS_ORIGIN?: string;
   ENVIRONMENT?: string;
 }
 
-// OpenAI API 响应类型
-interface OpenAIMessage {
+// DeepSeek API 响应类型
+interface DeepSeekMessage {
   role: 'system' | 'user' | 'assistant';
   content: string;
 }
 
-interface OpenAIResponse {
+interface DeepSeekResponse {
   choices: {
     message: {
       content: string;
@@ -79,7 +79,7 @@ const typeDefs = `
 // GraphQL Resolvers
 const resolvers = {
   Query: {
-    hello: () => 'Hello from Cloudflare Workers + GraphQL + OpenAI! 🚀',
+    hello: () => 'Hello from Cloudflare Workers + GraphQL + DeepSeek! 🚀',
     
     health: (_: any, __: any, { env }: { env: Env }) => ({
       status: 'OK',
@@ -112,7 +112,7 @@ const resolvers = {
         }
 
         // 构建消息历史
-        const messages: OpenAIMessage[] = [
+        const messages: DeepSeekMessage[] = [
           {
             role: 'system',
             content: '你是一个友好、有帮助的AI助手。请用简洁、准确的中文回答用户的问题。如果问题涉及敏感内容，请礼貌地拒绝并解释原因。'
@@ -131,18 +131,23 @@ const resolvers = {
           content: input.message.trim()
         });
 
-        // 验证模型参数
-        const allowedModels = ['gpt-3.5-turbo', 'gpt-3.5-turbo-16k', 'gpt-4', 'gpt-4-32k', 'gpt-4-turbo-preview'];
-        const model = allowedModels.includes(input.model) ? input.model : 'gpt-3.5-turbo';
+        // 验证模型参数 - DeepSeek 支持的模型
+        const allowedModels = [
+          'deepseek-chat', 
+          'deepseek-coder', 
+          'deepseek-reasoner',
+          'deepseek-v3'
+        ];
+        const model = allowedModels.includes(input.model) ? input.model : 'deepseek-chat';
         
         const temperature = Math.max(0, Math.min(2, input.temperature || 0.7));
         const maxTokens = Math.max(1, Math.min(4000, input.maxTokens || 1000));
 
-        // 调用 OpenAI API
-        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        // 调用 DeepSeek API
+        const response = await fetch('https://api.deepseek.com/v1/chat/completions', {
           method: 'POST',
           headers: {
-            'Authorization': `Bearer ${env.OPENAI_API_KEY}`,
+            'Authorization': `Bearer ${env.DEEPSEEK_API_KEY}`,
             'Content-Type': 'application/json',
             'User-Agent': 'AI-Chat-Worker/1.0.0'
           },
@@ -152,20 +157,21 @@ const resolvers = {
             temperature: temperature,
             max_tokens: maxTokens,
             stream: false,
-            presence_penalty: 0,
-            frequency_penalty: 0
+            top_p: 0.9,
+            frequency_penalty: 0,
+            presence_penalty: 0
           })
         });
 
         if (!response.ok) {
           const errorData = await response.text();
-          console.error('OpenAI API Error:', {
+          console.error('DeepSeek API Error:', {
             status: response.status,
             statusText: response.statusText,
             error: errorData
           });
           
-          let errorMessage = 'OpenAI API 调用失败';
+          let errorMessage = 'DeepSeek API 调用失败';
           
           switch (response.status) {
             case 401:
@@ -178,10 +184,10 @@ const resolvers = {
               errorMessage = '请求频率过高，请稍后再试';
               break;
             case 500:
-              errorMessage = 'OpenAI 服务器内部错误';
+              errorMessage = 'DeepSeek 服务器内部错误';
               break;
             default:
-              errorMessage = `OpenAI API 错误: ${response.status}`;
+              errorMessage = `DeepSeek API 错误: ${response.status}`;
           }
           
           return {
@@ -192,13 +198,13 @@ const resolvers = {
           };
         }
 
-        const data: OpenAIResponse = await response.json();
+        const data: DeepSeekResponse = await response.json();
         
         if (!data.choices || data.choices.length === 0) {
           return {
             success: false,
             message: null,
-            error: 'OpenAI API 返回空响应',
+            error: 'DeepSeek API 返回空响应',
             timestamp: new Date().toISOString()
           };
         }
@@ -281,11 +287,11 @@ const yoga = createYoga({
 // Cloudflare Workers 导出
 export default {
   async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
-    // 检查 OpenAI API Key
-    if (!env.OPENAI_API_KEY) {
+    // 检查 DeepSeek API Key
+    if (!env.DEEPSEEK_API_KEY) {
       return new Response(JSON.stringify({ 
-        error: 'OpenAI API Key 未配置',
-        message: '请在 Cloudflare Dashboard 中设置 OPENAI_API_KEY Secret'
+        error: 'DeepSeek API Key 未配置',
+        message: '请在 Cloudflare Dashboard 中设置 DEEPSEEK_API_KEY Secret'
       }), {
         status: 500,
         headers: { 
@@ -314,7 +320,8 @@ export default {
         status: 'OK',
         timestamp: new Date().toISOString(),
         environment: env.ENVIRONMENT || 'unknown',
-        version: '1.0.0'
+        version: '1.0.0',
+        api: 'DeepSeek'
       }), {
         headers: { 
           'Content-Type': 'application/json',
