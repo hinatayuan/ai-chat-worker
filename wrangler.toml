@@ -18,9 +18,5 @@ ENVIRONMENT = "development"
 CORS_ORIGIN = "*"
 ENVIRONMENT = "development"
 
-# Secrets (通过 wrangler secret 命令设置)
+# Secrets (通过 Dashboard 或 wrangler secret 命令设置)
 # wrangler secret put OPENAI_API_KEY
-
-# 限制配置
-[limits]
-cpu_ms = 30000
