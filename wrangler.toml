@@ -1,4 +1,4 @@
-name = "ai-chat-api"
+name = "ai-chat-box"
 main = "src/index.ts"
 compatibility_date = "2024-08-09"
 compatibility_flags = ["nodejs_compat"]
@@ -19,4 +19,4 @@ CORS_ORIGIN = "*"
 ENVIRONMENT = "development"
 
 # Secrets (通过 Dashboard 或 wrangler secret 命令设置)
-# wrangler secret put OPENAI_API_KEY
+# wrangler secret put DEEPSEEK_API_KEY
