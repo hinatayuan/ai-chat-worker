@@ -1,4 +1,4 @@
-// src/index.ts - Cloudflare Worker 主文件 (DeepSeek API 版本)
+// src/index.ts - Cloudflare Worker 主文件 (修复 CORS 问题)
 import { createSchema, createYoga } from 'graphql-yoga'
 
 // 环境变量类型定义
@@ -252,32 +252,12 @@ const yoga = createYoga({
     typeDefs,
     resolvers,
   }),
-  // CORS 配置
+  // 修复 CORS 配置
   cors: {
-    origin: (origin, { env }) => {
-      // 允许的源
-      const allowedOrigins = [
-        'http://localhost:3000',
-        'http://localhost:5173',
-        'https://hinatayuan.github.io',
-        'https://*.pages.dev',
-        env.CORS_ORIGIN
-      ].filter(Boolean);
-
-      // 如果没有origin（例如Postman请求），允许访问
-      if (!origin) return true;
-      
-      // 检查是否匹配允许的源
-      return allowedOrigins.some(allowed => {
-        if (allowed === '*') return true;
-        if (allowed.includes('*')) {
-          const pattern = allowed.replace(/\*/g, '.*');
-          return new RegExp(`^${pattern}$`).test(origin);
-        }
-        return allowed === origin;
-      });
-    },
-    credentials: true,
+    origin: '*',
+    credentials: false,
+    methods: ['GET', 'POST', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   },
   // GraphQL Playground 配置
   graphqlEndpoint: '/graphql',
