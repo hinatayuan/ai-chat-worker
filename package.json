@@ -1,0 +1,52 @@
+{
+  "name": "ai-chat-worker",
+  "version": "1.0.0",
+  "description": "Cloudflare Workers API for AI Chat with OpenAI and GraphQL",
+  "main": "src/index.ts",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "build": "esbuild src/index.ts --bundle --format=esm --outfile=dist/index.js --platform=neutral --conditions=workerd,browser",
+    "preview": "wrangler preview",
+    "test": "vitest",
+    "type-check": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.{ts,js}\"",
+    "lint": "eslint src --ext .ts"
+  },
+  "dependencies": {
+    "graphql": "^16.8.1",
+    "graphql-yoga": "^5.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20231025.0",
+    "@types/node": "^20.8.0",
+    "@typescript-eslint/eslint-plugin": "^6.9.0",
+    "@typescript-eslint/parser": "^6.9.0",
+    "esbuild": "^0.19.5",
+    "eslint": "^8.52.0",
+    "prettier": "^3.0.3",
+    "typescript": "^5.2.2",
+    "vitest": "^0.34.6",
+    "wrangler": "^3.15.0"
+  },
+  "keywords": [
+    "cloudflare",
+    "workers",
+    "openai",
+    "graphql",
+    "ai",
+    "chat",
+    "gpt",
+    "typescript"
+  ],
+  "author": "HinataYuan",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hinatayuan/ai-chat-worker.git"
+  },
+  "homepage": "https://github.com/hinatayuan/ai-chat-worker#readme",
+  "bugs": {
+    "url": "https://github.com/hinatayuan/ai-chat-worker/issues"
+  }
+}
